@@ -152,3 +152,58 @@ static char text[] = "MENUJU WAKTU";
 sprintf(out,"%s %s",text,sholatt[cekNext]);
 return out;
 }
+
+char *  drawNama()
+  {
+      static char  out[150]="Suhartono.Khusnul.Irfan.Alfin.Alfian";
+      return out;
+  }
+
+void drawShow1(int sNum,int c) // Box Sholah Time   tampilan jadwal sholat
+  {
+    static uint32_t   lsRn;
+    uint32_t          Tmr = millis();
+    char  Buff_hariN[20];
+    char  Buff_hariJ[20];
+    char Buff_Jam[20];
+    char Buff_Men[20];
+    char point1[2] = ":";
+    char point0[2] = " ";
+//    sprintf(HNSL,"%s" ,Hari[daynow-1]);    //HARI NASIONAL
+//    sprintf(HJAWA,"%s" ,pasar[jumlahhari()%5]); //HARI JAWA
+    sprintf(Buff_hariN,"%s   ",Hari[daynow-1]); 
+    sprintf(Buff_hariJ,"%s   ",pasar[jumlahhari()%5]); 
+    sprintf(Buff_Jam,"%02d",now.hour()); 
+    sprintf(Buff_Men,"%02d",now.minute());
+
+    if((Tmr-lsRn)>1000){state = !state; lsRn=Tmr; }
+    ////////////
+    fType(1); dwCtr(0,0,Buff_hariN); //tulisan hari biasa
+    fType(1); dwCtr(0,9,Buff_hariJ);   //tulisan hari jawa 
+    fType(1); dwCtr(42,0,Buff_Jam);
+    fType(1); dwCtr(42,9,Buff_Men);
+    if(state){fType(1); dwCtr(59,4,point1);}
+    else{fType(1); dwCtr(59,4,point0);}
+
+    DoSwap = true;          
+  }
+  
+void drawShow2(int sNum,int c){
+     static uint32_t   lsRn;
+    uint32_t          Tmr = millis();
+    char Jam[10];
+    char tgl[10];
+    
+    if((Tmr-lsRn)>1000){state = !state; lsRn=Tmr; }
+    if(state){sprintf(Jam,"%02d %02d",now.hour(),now.minute());}
+    else{sprintf(Jam,"%02d:%02d",now.hour(),now.minute()); }
+    
+    sprintf(tgl,"%02d-%02d-%04d",now.day(),now.month(),now.year());
+    
+     Disp.drawRect(1,11,63,12);
+    
+    fType(1); dwCtr(0,9,Jam); //tulisan nama
+    fType(1); dwCtr(0,0,tgl);   //tulisan tangal lahir 
+
+    DoSwap = true;
+}

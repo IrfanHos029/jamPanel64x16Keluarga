@@ -10,17 +10,25 @@ void drawAzzan(int DrawAdd)
     static uint8_t    ct;
     static uint16_t   lsRn;
     uint16_t          Tmr = millis();
-
+    char buff_jam[10];
+    char buff_sec[10];
+    char buff_text1[15]="ADZAN";
+    char buff_text2[20];
+  
+    sprintf(buff_jam,"%02d:%02d",now.hour(),now.minute());
+    sprintf(buff_sec,"%02d  ",now.second());
+    sprintf(buff_text1,"%s     ","ADZAN");
+    sprintf(buff_text2,"%s     ",sholatN(SholatNow));  
+   
     if((Tmr-lsRn) > 500 and ct <= ct_limit)
       {
         lsRn = Tmr;
+        
         if((ct%2) == 0)
-          { //Disp.drawRect(1,2,62,13);
-            fType(0);
-            dwCtr(0,0,"ADZAN");
-            fType(1);
-            if(jumat) {dwCtr(0,8,sholatN(8));}
-            else      {dwCtr(0,8,sholatt[SholatNow]);}
+          { 
+            fType(1); dwCtr(0,0,buff_text1);
+            fType(1); dwCtr(0,8,buff_text2);
+            
             Buzzer(1);
           }
         else 
@@ -28,10 +36,43 @@ void drawAzzan(int DrawAdd)
         DoSwap = true; 
         ct++;
       }
+      fType(1); dwCtr(42,9,buff_sec);
+      fType(1); dwCtr(34,0,buff_jam);
+      
     if ((Tmr-lsRn)>2000 and (ct > ct_limit))
       {dwDone(DrawAdd);
        ct = 0;
-       Buzzer(0);}
+       Buzzer(0);
+       }
+  }
+
+
+void runningAfterAdzan(int DrawAdd) //running teks ada jam nya
+  { 
+    // check RunSelector
+    static uint16_t   x; 
+    if(!dwDo(DrawAdd)) return;
+    if (reset_x !=0) { x=0;reset_x = 0;}      
+    
+    static char msg[] = "selamat menunaikan ibadah sholat";
+    char  out[460];
+    sprintf(out,"%s %s",msg, sholatN(SholatNow));
+    static uint16_t   lsRn;
+    byte Speed = 75;
+    int fullScroll = Disp.textWidth(msg) + DWidth + 150;    
+    uint16_t          Tmr = millis();
+    Serial.println(String()+"fullScroll:" + fullScroll);
+      BuzzerBlink(true);
+    if((Tmr-lsRn)> Speed)
+    { lsRn = Tmr;
+        if (x < fullScroll) {++x;}
+         else {  dwDone(DrawAdd); x=0; BuzzerBlink(false); return;}
+           
+        fType(5);  //Marquee    jam yang tampil di bawah
+        Disp.drawText(DWidth - x, 0, out); 
+        DoSwap = true;
+}
+
   }
 
 void drawIqomah(int DrawAdd)  // Countdown Iqomah (9 menit)
@@ -75,6 +116,104 @@ void drawIqomah(int DrawAdd)  // Countdown Iqomah (9 menit)
       }    
   }
 
+      
+ void drawSide1(int DrawAdd)
+  {
+    // check RunSelector
+//    int DrawAdd = 0b0000000000000100;
+    if(!dwDo(DrawAdd)) return; 
+
+    static uint8_t    x;
+    static uint8_t    s; // 0=in, 1=out
+    static uint8_t    sNum =1; 
+    static uint16_t   lsRn;
+    uint16_t          Tmr = millis();
+    uint8_t           c=0;
+    uint8_t    first_sNum = 0; 
+    int               DrawWd=64;   //DWidth - c;    
+
+    if((Tmr-lsRn)>10) 
+      {
+        if(s==0 and x<(DrawWd/2)){x++;lsRn=Tmr;}
+        if(s==1 and x>0){x--;lsRn=Tmr;}
+      }
+      
+    if((Tmr-lsRn)>4000 and x ==(DrawWd/2)) {s=1;}
+    if (x == 0 and s==1) 
+      { 
+        if (sNum <1){sNum++;}
+        else 
+          { 
+           dwDone(DrawAdd);
+           sNum=1;
+          } 
+        s=0;
+      }
+
+    if(Prm.SI==0) {first_sNum =1;}
+    else {first_sNum =0;}
+    if(Prm.SI==0 and sNum == 0) {sNum=1;}
+   
+//    if(  (((sNum == first_sNum) and s ==0) or 
+//          ((sNum == 1)and s == 1)) 
+//          and x <=20) {//drawSmallTS(int(x/2));
+//          } 
+   
+    drawShow1(sNum, c);
+
+    Disp.drawFilledRect(c,0,c+DrawWd/2-x,15,0);
+    Disp.drawFilledRect(DrawWd/2+x+c,0,66,15,0);
+  }
+
+
+  void drawSide2(int DrawAdd)
+  {
+    // check RunSelector
+//    int DrawAdd = 0b0000000000000100;
+    if(!dwDo(DrawAdd)) return; 
+
+    static uint8_t    x;
+    static uint8_t    s; // 0=in, 1=out
+    static uint8_t    sNum =1; 
+    static uint16_t   lsRn;
+    uint16_t          Tmr = millis();
+    uint8_t           c=0;
+    uint8_t    first_sNum = 0; 
+    int               DrawWd=DWidth - c;    
+
+    if((Tmr-lsRn)>10) 
+      {
+        if(s==0 and x<(DrawWd/2)){x++;lsRn=Tmr;}
+        if(s==1 and x>0){x--;lsRn=Tmr;}
+      }
+      
+    if((Tmr-lsRn)>4000 and x ==(DrawWd/2)) {s=1;}
+    if (x == 0 and s==1) 
+      { 
+        if (sNum <1){sNum++;}
+        else 
+          { 
+           dwDone(DrawAdd);
+           sNum=1;
+          } 
+        s=0;
+      }
+
+    if(Prm.SI==0) {first_sNum =1;}
+    else {first_sNum =0;}
+    if(Prm.SI==0 and sNum == 0) {sNum=1;}
+   
+//    if(  (((sNum == first_sNum) and s ==0) or 
+//          ((sNum == 1)and s == 1)) 
+//          and x <=20) {//drawSmallTS(int(x/2));
+//          } 
+   
+    drawShow2(sNum, c);
+
+    Disp.drawFilledRect(c,0,c+DrawWd/2-x,15,0);
+    Disp.drawFilledRect(DrawWd/2+x+c,0,63,15,0);
+  }
+
 void drawSholat_S(int sNum,int c) // Box Sholah Time   tampilan jadwal sholat
   {
 
@@ -111,6 +250,7 @@ uint16_t y;
     fType(1); dwCtr(33,9,BuffTime);   //jadwal sholatnya
     DoSwap = true;          
   }
+  
 bool stateI = false;
 void drawSholat(int DrawAdd)
   {
@@ -208,7 +348,7 @@ void cekSelisihSholat(int y)
 {
  //if(!dwDo(DrawAdd)) return;
  int i = SholatNow;
- 
+ /*
             switch(i){
      case 1 :
         cekNext = 4;
@@ -252,13 +392,23 @@ void cekSelisihSholat(int y)
       value = sholatT[cekNext] - floatnow;  value = value = value + 0.01;
      }
             
-
+*/
 //            Serial.println(String() + "value:" + value);
 //            Serial.println(String() + "testOut:" + testOut);
 //            Serial.println(String() + "floatnow:" + floatnow);
 //            Serial.println(String() + "i:" + i);
 //            Serial.println(String() + "stateCekCon:" + stateCekCon);
- 
+      switch(i){
+     case 0 :
+        cekNext = 6;
+         //stateCekCon=false;
+     break;
+     case 6 :
+        cekNext = 0;
+        //stateCekCon=false;
+     break;
+      };
+     value = sholatT[cekNext] - floatnow; value = value + 0.01;
  
       
     char text[] = "menuju waktu";
@@ -279,7 +429,41 @@ void cekSelisihSholat(int y)
 }
 
 
-
+void runConter(int DrawAdd){
+  if(!dwDo(DrawAdd)) return; 
+static bool stateCekCon=false;
+static int cekNext; 
+ static float value;
+ int i = SholatNow;
+  switch(i){
+     case 0 :
+        cekNext = 6;
+         //stateCekCon=false;
+     break;
+     case 6 :
+        cekNext = 0;
+        //stateCekCon=false;
+     break;
+      };
+     value = sholatT[cekNext] - floatnow; value = value + 0.01;
+ 
+      
+    char text[] = "menuju waktu";
+    char  BuffTime[20];
+    char  BuffShol[50];
+    float   stime   = value;
+    uint8_t shour   = floor(stime);
+    uint8_t sminute = floor((stime-(float)shour)*60);
+    uint8_t ssecond = floor((stime-(float)shour-(float)sminute/60)*3600);
+    sprintf(BuffTime,"%s%02d:%02d:%02d","-",shour,sminute,ssecond);
+    sprintf(BuffShol,"%s %s",text,sholatN(cekNext));
+//    Serial.println(String() + "sholatT[i]:" + sholatT[i]);
+//    Serial.println(String() + "sholatT[cekNext]:" + sholatT[cekNext]);
+   // Disp.drawRect(c+1,2,62,13);
+   //  fType(1); dwCtr(0,0,sholatN(cekNext)); //tulisan waktu sholat
+    fType(1); dwCtr(0,0,BuffTime);   //jadwal sholatnya
+    DoSwap = true;           
+  }
 
 void drawGreg_DS(uint16_t y)   //Draw Date
   { 
@@ -325,7 +509,7 @@ void drawGreg_cil(uint16_t y)   // Draw Time
     dwCtr(0,y,Buff);
     DoSwap = true; 
   }
-void Jam_GD(uint16_t y)   // Draw Time Depan  jam besar di depan
+void Jam_GD(uint16_t y1,uint16_t y2,uint16_t x)   // Draw Time Depan  jam besar di depan
   {
     char  BuffJ[6];
     char  BuffM[6];
@@ -334,15 +518,19 @@ void Jam_GD(uint16_t y)   // Draw Time Depan  jam besar di depan
     sprintf(BuffM,"%02d",now.minute());
     sprintf(BuffD,"%02d",now.second());
     fType(3);
-    Disp.drawText(1,y,BuffJ);  //tampilkan jam
-    Disp.drawText(25,y,BuffM);  //tampilkan menit
-  //  fType(3);
-    Disp.drawText(50,y,BuffD);  //tampilkan detik drawCircle
-    Disp.drawRect(20,y+3,18,y+5,1);
-    Disp.drawRect(20,y+10,18,y+12,1);
+    Disp.drawText(1,y1,BuffJ);  //tampilkan jam
+    Disp.drawText(25,y2,BuffM);  //tampilkan menit
+    Disp.drawText(x,0,BuffD);  //tampilkan detik //x=50
 
-      Disp.drawRect(45,y+3,43,y+5,1);
-    Disp.drawRect(45,y+10,43,y+12,1);
+    if (y1==0)
+      {
+        Disp.drawRect(20,0+3,18,0+5,1);
+        Disp.drawRect(20,0+10,18,0+12,1);
+
+         Disp.drawRect(45,0+3,43,0+5,1);
+         Disp.drawRect(45,0+10,43,0+12,1);
+      }
+    
     DoSwap = true; 
   }
 
@@ -383,22 +571,21 @@ void anim_JG(int DrawAdd)
     static uint16_t   lsRn;
     uint16_t          Tmr = millis();
 
-    if((Tmr-lsRn)>100) 
+    if((Tmr-lsRn)>75) 
       { 
         if(s==0 and y<17){lsRn=Tmr;y++;}
         if(s==1 and y>0){lsRn=Tmr;y--;}
       }
     if((Tmr-lsRn)>10000 and y ==17) {s=1;}
-    if (y==7)
-      {
-       // Disp.drawRect(1,2,62,13);
-      }
+    
     if (y == 0 and s==1) {dwDone(DrawAdd); s=0;}
     //fType(1);
     //drawGreg_TS(y-8);
     
-    Jam_GD(17-y);      
+    Jam_GD(17-y,y-17,67-y);      
+    
     }
+    
 unsigned long lss=0;
 void dwMrq(const char* msg, int Speed, int dDT, int DrawAdd) //running teks ada jam nya
   { 
@@ -520,6 +707,31 @@ uint16_t y;
    // Disp.drawText(1,7,String(ct_l-ct)); 
   }
 
+  void BuzzerBlink(bool state){
+  
+  uint16_t currentMillis = millis();
+  static unsigned long saveTime=0;
+  
+  if (currentMillis - saveTime >= 100 && state == true) {
+    // save the last time you blinked the LED
+    saveTime = currentMillis;
+    
+    if (stateBlink) {
+      digitalWrite(BUZZ,LOW);
+    } else {
+      digitalWrite(BUZZ,HIGH);
+    } 
+    stateBlink = !stateBlink;
+     
+  }
+  if(state == false){
+    digitalWrite(BUZZ,LOW);
+    saveTime =0;
+  }
+  
+  }
+
+
 // =========================================
 // Drawing Tools============================
 // =========================================
@@ -541,9 +753,9 @@ void dwCtr(int x, int y,const char* Msg)
 void Buzzer(uint8_t state)
   {
     if(state ==1 ) //dapat dikasih kondisi jika diwaktu tertentu buzzer tidak aktif
-      {tone(BUZZ, 500, 400);}
+      {digitalWrite(BUZZ,HIGH);}//{tone(BUZZ, 500, 400);}
     else 
-      {noTone(BUZZ);}
+      {digitalWrite(BUZZ,LOW);}//noTone(BUZZ);}
   }
   
 void fType(int x)
@@ -553,7 +765,8 @@ void fType(int x)
     else if(x==2) Disp.setFont(Font2);
     else if(x==3) Disp.setFont(Font3);
     else if(x==4) Disp.setFont(Font4);
-  //  else Disp.setFont(Font5);  
+    else if(x==5) Disp.setFont(Font5);
+    else if(x==6) Disp.setFont(Font6);  
   }
 
 // digunakan untuk menghitung hari pasaran

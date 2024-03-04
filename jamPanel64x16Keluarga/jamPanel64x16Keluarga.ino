@@ -8,7 +8,8 @@
 #include <font/Font4x6.h>
 #include <font/SystemFont5x7.h>
 #include <font/Font3x5.h>
-//#include <font2/Font6x7.h>
+#include <font/Calibri14.h>
+#include <font/EMSans8x16.h>
 
 #include <DS3231.h>
 #include <EEPROM.h>
@@ -16,18 +17,22 @@
 #include <Wire.h>
 #include <MemoryFree.h>
 
-#define BUZZ    2 
+#define BUZZ    12 
 
 #define Font0 Font4x6
 #define Font3 BigNumber
 #define Font2 Font3x5
 #define Font1 SystemFont5x7
 #define Font4 KecNumber
-//#define Font5 Font6x7
+#define Font5 EMSans8x16
+#define Font6 Calibri14
     
 // Object Declarations
 DMD3 Disp(2,1);
 char *pasar[] ={"WAGE", "KLIWON", "LEGI", "PAHING", "PON"}; 
+char *mounthJawa[]= {"Muharram","Shafar","Rab.awal","Rab.akhir","Jum.awal","Jum.akhir","Rajab","Sya'ban","Ramadhan","Syawal","Dzulqa'dah","Dzulhijah"};
+//char *sholatCall[] = {"IMSAK","SUBUH","TERBIT","DHUHA","DUHUR","ASHAR","MAGRIB","ISYA","JUM'AT"};   
+
 int maxday[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 RTClib          RTC;
 DS3231          Clock;
@@ -96,6 +101,7 @@ int         DHeight = Disp.height();
 boolean     DoSwap;
 int         RunSel    = 1; //
 int         RunFinish = 0 ;
+bool            state      = false;
 //   -7.364057, 112.646222                                                 
 float latitude =  -7.364057;
 float longitude = 112.646222;
@@ -103,6 +109,8 @@ float timezone = +07.00;
 float ketinggian = 50;
 char Hari[7][12] = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU"};
 char *sholatt[] = {"IMSAK","SUBUH","TERBIT","DHUHA","DZUHUR ","ASHAR","MAGRIB","ISYA"};
+bool stateBlink=false;
+bool stateWarRun;
 //=======================================
 //===SETUP=============================== 
 //=======================================
@@ -121,6 +129,10 @@ void setup()
 
     //init P10 Led Disp & Salam
     Disp_init();
+    for(int i=0;i<2;i++){
+  Buzzer(1); delay(80);
+  Buzzer(0); delay(80);
+ }
   }
 
 //=======================================
@@ -144,22 +156,26 @@ void loop()
     // List of Display Component Block =========
     // =========================================
     anim_JG(1);                                                 // addr: 1 show date time
-    dwMrq(drawMasjidName(),45,2,2);                             // addr: 2 show Masjid Name
-    dwMrq(drawDayDate()   ,45,1,3);                             // addr: 3 show Hijriah date
-   // dwMrq(msgPuasa(hd_puasa,ty_puasa),75,0,4);                  // addr: 5 show Remander Puasa
-    drawSholat(5);                                              // addr: 5 show sholat time
-    dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
+    drawSide2(2);
+    drawSide1(3);
+    dwMrq(drawNama(),75,1,5);
+//    dwMrq(drawMasjidName(),45,2,2);                             // addr: 2 show Masjid Name
+//    dwMrq(drawDayDate()   ,45,1,3);                             // addr: 3 show Hijriah date
+//   // dwMrq(msgPuasa(hd_puasa,ty_puasa),75,0,4);                  // addr: 5 show Remander Puasa
+    drawSholat(6);                                              // addr: 5 show sholat time
+//    dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
      dwMrq(drawCounterBack(),45,3,7);
     // anim_DT(7);                                                 // addr: 7 show date time    
     //dwMrq(drawInfo(280)   ,75,2,8);                             // addr: 8 show Info 2
   //  drawSholat(9);                                              // addr: 9 show sholat time
 //    dwMrq(drawInfo(430)   ,75,1,10);                            // addr: 10 show Info 3
   
- Serial.println(String() + "time:" + floatnow);
+ //Serial.println(String() + "time:" + floatnow);
     drawAzzan(100);                                             // addr: 100 show Azzan
-    drawIqomah(101);                                            // addr: 101 show Iqomah
+    //drawIqomah(101);                                            // addr: 101 show Iqomah
 //    dwMrq(drawInfo(580),50,0,102); //Message Sholat biasa       // addr: 202 show Message Sholah
 //    dwMrq(drawInfo(730),50,0,103); //Message Sholat jumat       // addr: 203 show Message Jum'at
+    runningAfterAdzan(101);
     blinkBlock(104);                                            // addr: 104 show Blink  Sholat    
 //     Serial.println(String() + "Prm.IM:" + Prm.IM); 
 //     Serial.println(String() + "Prm.IH:" + Prm.IH);
@@ -179,7 +195,8 @@ void loop()
 //         }
     if(RunFinish==3)  {RunSel = 5;  RunFinish =0;}                      //after anim 4 set anim 5
     if(RunFinish==5)  {RunSel = 6;  RunFinish =0;}                      //after anim 5 set anim 6
-    if(RunFinish==6)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
+    if(RunFinish==6 and stateWarRun == 1)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
+    else if(RunFinish==6 and stateWarRun == 0)  {RunSel = 1;  RunFinish =0;}
     if(RunFinish==7)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
 //    if(RunFinish==8)  {RunSel = 9;  RunFinish =0;}                      //after anim 8 set anim 9
 //    if(RunFinish==9)  {RunSel = 10; RunFinish =0;}                      //after anim 9 set anim 10
@@ -189,7 +206,7 @@ void loop()
     if(RunFinish==100 and jumat )     {RunSel = 1; RunFinish = 0; reset_x = 1;}  //after Azzan Jumat (anim 100)
     else if(RunFinish==100)           {RunSel = 101; RunFinish =0;}               //after Azzan Sholah (Iqomah)
         
-    if(RunFinish==101) {RunSel = 104; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
+    if(RunFinish==101) {RunSel = 1; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
     if(RunFinish==102) {RunSel = 104; RunFinish =0;}                  //after Message Sholah (anim 102) set Blink Sholah(anim 104) 
     if(RunFinish==103) {RunSel = 104; RunFinish =0;}                  //after Messagw Jum'at (anim 103) set Blink Sholah(anim 104)
     if(RunFinish==104) {RunSel = 1; RunFinish =0;}                    //after Blink Sholah back to anim 1 
@@ -251,9 +268,13 @@ void update_All_data()
   if(floatnow>sholatT[6]) {date_cor = 1;}                     // load Hijr Date + corection next day after Mhagrib 
   nowH = toHijri(now.year(),now.month(),now.day(),date_cor);  // load Hijir Date
   
-  if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(20);}
+  if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(150);}
       else                                                   {setBrightness(200);}  
-     /////// Serial.println((float)3.5);
+
+   if((floatnow > (float)00.00) and (floatnow < sholatT[0] )) { stateWarRun = 1; }
+   else if((floatnow > sholatT[5]) and (floatnow < sholatT[6] )) { stateWarRun = 1; }
+   else { stateWarRun = 0; }
+    Serial.println(String()+"stateWarRun:"+stateWarRun);
   }
   
     
