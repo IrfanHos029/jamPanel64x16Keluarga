@@ -110,7 +110,7 @@ float ketinggian = 50;
 char Hari[7][12] = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU"};
 char *sholatt[] = {"IMSAK","SUBUH","TERBIT","DHUHA","DZUHUR ","ASHAR","MAGRIB","ISYA"};
 bool stateBlink=false;
-bool stateWarRun;
+bool stateWarRun=0;;
 //=======================================
 //===SETUP=============================== 
 //=======================================
