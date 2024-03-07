@@ -144,7 +144,7 @@ void loop()
     update_All_data();   //every time
     check_azzan();  //check Sholah Time for Azzan
     DoSwap  = false ;
-    fType(1);  
+    //fType(1);  
     Disp.clear();
     
    // Serial.println(String() + "sholatNow:" + SholatNow);
@@ -162,9 +162,9 @@ void loop()
 //    dwMrq(drawMasjidName(),45,2,2);                             // addr: 2 show Masjid Name
 //    dwMrq(drawDayDate()   ,45,1,3);                             // addr: 3 show Hijriah date
 //   // dwMrq(msgPuasa(hd_puasa,ty_puasa),75,0,4);                  // addr: 5 show Remander Puasa
-    drawSholat(6);                                              // addr: 5 show sholat time
-//    dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
-     dwMrq(drawCounterBack(),45,3,7);
+    //drawSholat(6);                                              // addr: 5 show sholat time
+    //dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
+    dwMrq(drawCounterBack(),45,3,6);
     // anim_DT(7);                                                 // addr: 7 show date time    
     //dwMrq(drawInfo(280)   ,75,2,8);                             // addr: 8 show Info 2
   //  drawSholat(9);                                              // addr: 9 show sholat time
@@ -176,7 +176,7 @@ void loop()
 //    dwMrq(drawInfo(580),50,0,102); //Message Sholat biasa       // addr: 202 show Message Sholah
 //    dwMrq(drawInfo(730),50,0,103); //Message Sholat jumat       // addr: 203 show Message Jum'at
     runningAfterAdzan(101);
-    blinkBlock(104);                                            // addr: 104 show Blink  Sholat    
+//    blinkBlock(104);                                            // addr: 104 show Blink  Sholat    
 //     Serial.println(String() + "Prm.IM:" + Prm.IM); 
 //     Serial.println(String() + "Prm.IH:" + Prm.IH);
 //     Serial.println(String() + "Prm.II:" + Prm.II);
@@ -194,10 +194,12 @@ void loop()
 //          else {RunSel = 5; RunFinish =0;}
 //         }
     if(RunFinish==3)  {RunSel = 5;  RunFinish =0;}                      //after anim 4 set anim 5
-    if(RunFinish==5)  {RunSel = 6;  RunFinish =0;}                      //after anim 5 set anim 6
-    if(RunFinish==6 and stateWarRun == 1)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
-    else if(RunFinish==6 and stateWarRun == 0)  {RunSel = 1;  RunFinish =0;}
-    if(RunFinish==7)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
+    //if(RunFinish==5)  {RunSel = 6;  RunFinish =0;}                      //after anim 5 set anim 6
+    //if(RunFinish==6)  {RunSel = 1;  RunFinish =0;} 
+    if(RunFinish==5 && stateWarRun == 1)  {RunSel = 6;  RunFinish =0; }                      //after anim 6 set anim 7
+    else if(RunFinish == 5 && stateWarRun == 0){ RunSel = 1;  RunFinish =0; }
+    
+    if(RunFinish==6)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
 //    if(RunFinish==8)  {RunSel = 9;  RunFinish =0;}                      //after anim 8 set anim 9
 //    if(RunFinish==9)  {RunSel = 10; RunFinish =0;}                      //after anim 9 set anim 10
 //    if(RunFinish==10) {RunSel = 1;  RunFinish =0;}                      //after anim 10 set anim 1
@@ -271,11 +273,12 @@ void update_All_data()
   if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(150);}
       else                                                   {setBrightness(200);}  
 
-   if((floatnow > (float)00.00) and (floatnow < sholatT[0] )) { stateWarRun = 1; }
-   else if((floatnow > sholatT[5]) and (floatnow < sholatT[6] )) { stateWarRun = 1; }
+   if((floatnow > (float)00.00) and (floatnow < sholatT[0] )) {Serial.println(String()+"state war run1:"); stateWarRun  = 1; }
+   else if((floatnow > sholatT[5]) and (floatnow < sholatT[6] )) {Serial.println(String()+"state war run2:"); stateWarRun = 1; }
    else { stateWarRun = 0; }
     Serial.println(String()+"stateWarRun:"+stateWarRun);
   }
+  
   
     
 void check_azzan()

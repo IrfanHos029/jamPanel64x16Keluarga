@@ -37,7 +37,7 @@
  *        SRAM   2k bytes
  *        EEPROM 1k byte
  */
-
+/*
 void serialEvent()
   { 
     int prm_idx = 0;
@@ -69,6 +69,7 @@ void serialEvent()
         while(Serial.available()) {Serial.read();}
       }
   }
+  */
   /*
 void LoadPrm()
   { 
